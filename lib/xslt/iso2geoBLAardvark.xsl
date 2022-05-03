@@ -67,7 +67,7 @@
         </xsl:otherwise>
          </xsl:choose>
     </xsl:variable> 
-    <xsl:text>{"$schema": "https://raw.githubusercontent.com/NathanHumpal/geoblacklight/main/schema/geoblacklight-schema-aardvark.json",</xsl:text>
+    <xsl:text>{"$schema": "https://raw.githubusercontent.com/UWM-Libraries/geoblacklight/main/schema/geoblacklight-schema-aardvark.json",</xsl:text>
     <xsl:text>"dct_title_s": "</xsl:text><xsl:value-of select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:title"/><xsl:text>",</xsl:text>
     <xsl:choose>
       <xsl:when test="count(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:abstract)>1">
