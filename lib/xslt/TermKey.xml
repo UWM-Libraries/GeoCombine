@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Themes>
+    <theme ISOname="farming" themeName="Agriculture"/>
+    <theme ISOname="biota" themeName="Biology"/>
+    <theme ISOname="boundaries" themeName="Boundaries"/>
+    <theme ISOname="climatologyMeteorologyAtmosphere" themeName="Climate"/>
+    <!--<theme ISOname="climatologyMeteorologyAtmosphere" themeName="Events"/> This is offered as a related term, but doesn't seem to apply to our data -->
+    <theme ISOname="economy" themeName="Economy"/>
+    <theme ISOname="elevation" themeName="Elevation"/>
+    <theme ISOname="environment" themeName="Environment"/>
+    <!-- <theme ISOname="society" themeName="Events"/> This is offered as a related term, but doesn't seem to apply to our data -->
+    <theme ISOname="society" themeName="Society"/>
+    <theme ISOname="geoscientificInformation" themeName="Geology"/>
+    <theme ISOname="health" themeName="Health"/>
+    <theme ISOname="imageryBaseMapsEarthCover" themeName="Imagery"/>
+    <theme ISOname="imageryBaseMapsEarthCover" themeName="Land Cover"/>
+    <theme ISOname="inlandWaters" themeName="Inland Waters"/>
+    <theme ISOname="location" themeName="Location"/>
+    <theme ISOname="intelligenceMilitary" themeName="Military"/>
+    <theme ISOname="oceans" themeName="Oceans"/>
+    <theme ISOname="planningCadastre" themeName="Property"/>
+    <theme ISOname="structure" themeName="Structure"/>
+    <theme ISOname="transportation" themeName="Transportation"/>
+    <theme ISOname="utilitiesCommunication" themeName="Utilities"/>
+</Themes>
