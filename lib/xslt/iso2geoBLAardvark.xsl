@@ -283,50 +283,59 @@
     <xsl:choose>
       <xsl:when test="count(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox) = 1">
         <xsl:text>"locn_geometry": "ENVELOPE(</xsl:text>
-        <xsl:value-of select="number(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:eastBoundLongitude/gco:Decimal)"/>
+        <xsl:value-of select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:eastBoundLongitude/gco:Decimal"/>
         <xsl:text>, </xsl:text>
-        <xsl:value-of select="number(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:westBoundLongitude/gco:Decimal)"/>
+        <xsl:value-of select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:westBoundLongitude/gco:Decimal"/>
         <xsl:text>, </xsl:text>
-        <xsl:value-of select="number(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:northBoundLatitude/gco:Decimal)"/>
+        <xsl:value-of select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:northBoundLatitude/gco:Decimal"/>
         <xsl:text>, </xsl:text>
-        <xsl:value-of select="number(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:southBoundLatitude/gco:Decimal)"/>
+        <xsl:value-of select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:southBoundLatitude/gco:Decimal"/>
         <xsl:text>)",</xsl:text>
       </xsl:when>
-    </xsl:choose>
-
-    <!-- 19. Bounding Box element. Recommended. Not Repeatable -->
-    <xsl:choose>
-      <xsl:when test="count(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox) = 1">
-        <xsl:text>"locn_geometry": "ENVELOPE(</xsl:text>
-        <xsl:value-of select="number(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:eastBoundLongitude/gco:Decimal)"/>
-        <xsl:text>, </xsl:text>
-        <xsl:value-of select="number(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:westBoundLongitude/gco:Decimal)"/>
-        <xsl:text>, </xsl:text>
-        <xsl:value-of select="number(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:northBoundLatitude/gco:Decimal)"/>
-        <xsl:text>, </xsl:text>
-        <xsl:value-of select="number(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:southBoundLatitude/gco:Decimal)"/>
-        <xsl:text>)",</xsl:text>
-      </xsl:when>
-      <xsl:when test="count(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox) > 1">
+      <xsl:when test="count(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox) &gt; 1">
         <xsl:text>"locn_geometry": "MULTIPOLYGON(</xsl:text>
         <xsl:for-each select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox">
+          <xsl:variable name="e" select="gmd:eastBoundLongitude/gco:Decimal"/>
+          <xsl:variable name="w" select="gmd:westBoundLongitude/gco:Decimal"/>
+          <xsl:variable name="n" select="gmd:northBoundLatitude/gco:Decimal"/>
+          <xsl:variable name="s" select="gmd:southBoundLatitude/gco:Decimal"/>
           <xsl:text>((</xsl:text>
-          <xsl:value-of select="number(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:eastBoundLongitude/gco:Decimal)"/>
+          <xsl:value-of select="$w"/>
+          <xsl:text> </xsl:text>
+          <xsl:value-of select="$n"/>
           <xsl:text>, </xsl:text>
-          <xsl:value-of select="number(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:westBoundLongitude/gco:Decimal)"/>
+          <xsl:value-of select="$e"/>
+          <xsl:text> </xsl:text>
+          <xsl:value-of select="$n"/>
           <xsl:text>, </xsl:text>
-          <xsl:value-of select="number(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:northBoundLatitude/gco:Decimal)"/>
+          <xsl:value-of select="$e"/>
+          <xsl:text> </xsl:text>
+          <xsl:value-of select="$s"/>
           <xsl:text>, </xsl:text>
-          <xsl:value-of select="number(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:southBoundLatitude/gco:Decimal)"/>
+          <xsl:value-of select="$w"/>
+          <xsl:text> </xsl:text>
+          <xsl:value-of select="$s"/>
           <xsl:text>))</xsl:text>
           <xsl:if test="position() != last()">
             <xsl:text>,</xsl:text>
           </xsl:if>
         </xsl:for-each>
         <xsl:text>)",</xsl:text>
-
       </xsl:when>
     </xsl:choose>
+
+    <!-- 19. Bounding Box element. Recommended. Not Repeatable -->
+    <xsl:if test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox">
+      <xsl:text>"dcat_bbox": "ENVELOPE(</xsl:text>
+      <xsl:value-of select="min(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:westBoundLongitude/gco:Decimal)"/>
+      <xsl:text>, </xsl:text>
+      <xsl:value-of select="max(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:eastBoundLongitude/gco:Decimal)"/>
+      <xsl:text>, </xsl:text>
+      <xsl:value-of select="max(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:northBoundLatitude/gco:Decimal)"/>
+      <xsl:text>, </xsl:text>
+      <xsl:value-of select="min(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:southBoundLatitude/gco:Decimal)"/>
+      <xsl:text>)",</xsl:text>
+    </xsl:if>
     <!-- 20. Future site of Centroid element. Optional. Not Repeatable -->
     <!-- 21. Future site of Relation element. Optional. Repeatable -->
     <!-- 22. Future site of Member Of element. Optional. Repeatable -->
