@@ -10,6 +10,7 @@
   <xsl:variable name="ThemeTranslate" select="document('TermKey.xml')"/>
   <xsl:key name="ThemeKey" match="Themes/theme" use="@ISOname"/>
   
+  
 
   <xsl:template match="/">
     
@@ -63,10 +64,52 @@
     <xsl:variable name="uuid">
       <xsl:value-of select="gmd:MD_Metadata/gmd:fileIdentifier/gco:CharacterString"/>
     </xsl:variable>
-    <xsl:variable name="temporalCoverage">
-      <xsl:if test="matches(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString, '\d{4}$')">
+    <xsl:variable name="temporalBegin">
+      <xsl:choose>
+        <xsl:when test="matches(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition, 'T')">
+          <xsl:value-of select="substring-before(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition, 'T')"/>
+        </xsl:when>
+        <xsl:when test="matches(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition, '^(\d{4}-[\d]{2}-[\d]{2}$')">
+          <xsl:value-of select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition"/>
+        </xsl:when>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:variable name="beginDate">
+      <xsl:choose>
+        <xsl:when test="matches(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition, 'T')">
+          <xsl:value-of select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition"/>
+        </xsl:when>
+        <xsl:when test="matches(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition, '^\d{4}-\d{2}-\d{2}$')">
+          <xsl:value-of select="dateTime(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition, xs:time('00:00:00'))"/>
+        </xsl:when>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:variable name="endDate">
+      <xsl:choose>
+        <xsl:when test="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endDate != ''">
+          <xsl:value-of select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endDate"/>
+        </xsl:when>
+        <xsl:when test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endPosition/@indeterminatePosition">
+          <xsl:text>?</xsl:text>
+        </xsl:when>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:variable name="temporalInstance">
+      <xsl:choose>
+        <xsl:when test="count(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant/gml:timePosition) = 1">
+          <xsl:choose>
+            <xsl:when test="matches(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant/gml:timePosition, 'T')">
+              <xsl:value-of select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant/gml:timePosition"/>
+            </xsl:when>
+            <xsl:when test="matches(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant/gml:timePosition, '^\d{4}-\d{2}-\d{2}$')">
+              <xsl:value-of select="dateTime(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant/gml:timePosition, xs:time('00:00:00'))"/>
+            </xsl:when>
+          </xsl:choose>
+        </xsl:when>
+      </xsl:choose>
+    </xsl:variable>
+      <xsl:variable name="titleDate">
         <xsl:value-of select="substring(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString, string-length(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString)-3)"/>
-      </xsl:if>
     </xsl:variable>
     <xsl:variable name="dateIssued">
       <xsl:value-of select="year-from-date(xs:date(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:date/gmd:CI_Date[gmd:dateType/gmd:CI_DateTypeCode[text()='publication']]/gmd:date/gco:Date))"/>
@@ -238,18 +281,56 @@
     </xsl:if>
     <!-- 12. Future site of Keyword element. Optional. Repeatable -->
     <!-- 13. Temporal Coverage element. Recommended. Repeatable -->
-    <xsl:if test="$temporalCoverage != ''">
-      <xsl:text>"dct_temporal_sm": ["</xsl:text>
-      <xsl:value-of select="$temporalCoverage"/>
-      <xsl:text>"],</xsl:text>
-    </xsl:if>
-    <!-- 14. Future site of Date Issued element. Optional. Not Repeatable -->
+    <xsl:choose>
+      <xsl:when test="$beginDate != '' and $endDate != ''">
+        <xsl:text>"dct_temporal_sm": ["</xsl:text>
+        <xsl:choose>
+          <xsl:when test="month-from-dateTime($beginDate) = 1 and day-from-dateTime($beginDate) = 1">
+            <xsl:value-of select="year-from-date($beginDate)"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="format-dateTime($beginDate,'[Y0001]-[M01]-[D01]')"/>
+          </xsl:otherwise>
+        </xsl:choose>
+        <xsl:text> to </xsl:text>
+        <xsl:choose>
+          <xsl:when test="$endDate = '?'">
+            <xsl:value-of select="$endDate"/>
+          </xsl:when>
+          <xsl:when test="month-from-dateTime($endDate) = 1 and day-from-dateTime($endDate) = 1">
+            <xsl:value-of select="year-from-date($endDate)"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="format-dateTime($endDate,'[Y0001]-[M01]-[D01]')"/>
+          </xsl:otherwise>
+        </xsl:choose>
+        <xsl:text>"],</xsl:text>
+      </xsl:when>
+      <xsl:when test="$temporalInstance != ''">
+        <xsl:text>"dct_temporal_sm": ["</xsl:text>
+        <xsl:choose>
+          <xsl:when test="month-from-dateTime($temporalInstance) = 1 and day-from-dateTime($temporalInstance) = 1">
+            <xsl:value-of select="year-from-dateTime($temporalInstance)"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="format-dateTime($temporalInstance,'[Y0001]-[M01]-[D01]')"/>
+          </xsl:otherwise>
+        </xsl:choose>
+        <xsl:text>"],</xsl:text>
+      </xsl:when>
+      <xsl:when test="not(empty($titleDate))">
+        <xsl:text>"dct_temporal_sm": ["</xsl:text>
+        <xsl:value-of select="$titleDate"/>
+        <xsl:text>"],</xsl:text>
+      </xsl:when>
+    </xsl:choose>
+    <!-- 14. Date Issued element. Optional. Not Repeatable -->
     <xsl:if test="$dateIssued != ''">
       <xsl:text>"dct_issued_s": "</xsl:text>
       <xsl:value-of select="$dateIssued"/>
       <xsl:text>",</xsl:text>
     </xsl:if>
-    <!-- 15. Index Year element. Recommended. Repeatable -->
+    <!-- 15. Index Year element. Recommended. Repeatable 
     <xsl:if test="$temporalCoverage != '' or $dateIssued != ''">
       <xsl:text>"gbl_indexYear_im": [</xsl:text>
       <xsl:choose>
@@ -261,7 +342,7 @@
         </xsl:otherwise>
       </xsl:choose>
       <xsl:text>],</xsl:text>
-    </xsl:if>
+    </xsl:if>-->
     <!-- 16. Future site of Date Range element. Optional. Repeatable -->
     <!-- 17. Spatial Coverage element. Recommended. Repeatable -->
     <xsl:if       test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:type/gmd:MD_KeywordTypeCode[@codeListValue = 'place']">
