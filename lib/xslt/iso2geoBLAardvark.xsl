@@ -86,8 +86,8 @@
     </xsl:variable>
     <xsl:variable name="endDate">
       <xsl:choose>
-        <xsl:when test="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endDate != ''">
-          <xsl:value-of select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endDate"/>
+        <xsl:when test="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endPosition != ''">
+          <xsl:value-of select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endPosition"/>
         </xsl:when>
         <xsl:when test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endPosition/@indeterminatePosition">
           <xsl:text>?</xsl:text>
@@ -281,14 +281,12 @@
     </xsl:if>
     <!-- 12. Future site of Keyword element. Optional. Repeatable -->
     <!-- 13. Temporal Coverage element. Recommended. Repeatable -->
-    <xsl:choose>
-      <xsl:when test="count(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent) = 1">
         <xsl:choose>
           <xsl:when test="$beginDate != '' and $endDate != ''">
             <xsl:text>"dct_temporal_sm": ["</xsl:text>
             <xsl:choose>
               <xsl:when test="month-from-dateTime($beginDate) = 1 and day-from-dateTime($beginDate) = 1">
-                <xsl:value-of select="year-from-date($beginDate)"/>
+                <xsl:value-of select="year-from-dateTime($beginDate)"/>
               </xsl:when>
               <xsl:otherwise>
                 <xsl:value-of select="format-dateTime($beginDate,'[Y0001]-[M01]-[D01]')"/>
@@ -325,31 +323,29 @@
             <xsl:value-of select="$titleDate"/>
             <xsl:text>"],</xsl:text>
           </xsl:when>
+          <xsl:when test="count(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification//gmd:temporalElement//gml:timePosition) &gt; 1">
+            <xsl:text>"dct_temporal_sm": ["</xsl:text>
+            <xsl:for-each select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification//gmd:temporalElement//gml:timePosition">
+              <xsl:choose>
+                <xsl:when test="month-from-dateTime(.) = 1 and day-from-dateTime(.) = 1">
+                  <xsl:value-of select="year-from-dateTime(.)"/>
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:value-of select="format-dateTime(.,'[Y0001]-[M01]-[D01]')"/>
+                </xsl:otherwise>
+              </xsl:choose>
+              <xsl:choose>
+                <xsl:when test="position() != last()-1 and position() != last()">
+                  <xsl:text>, </xsl:text>
+                </xsl:when>
+                <xsl:when test="position() = last()-1">
+                  <xsl:text> and </xsl:text>
+                </xsl:when>
+              </xsl:choose>
+            </xsl:for-each>
+            <xsl:text>"],</xsl:text>
+          </xsl:when>
         </xsl:choose>
-      </xsl:when>
-      <xsl:when test="count(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent) &gt; 1">
-        <xsl:text>"dct_temporal_sm": ["</xsl:text>
-        <xsl:for-each select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification//gmd:temporalElement//gml:timePosition">
-          <xsl:choose>
-            <xsl:when test="month-from-dateTime(.) = 1 and day-from-dateTime(.) = 1">
-              <xsl:value-of select="year-from-dateTime(.)"/>
-            </xsl:when>
-            <xsl:otherwise>
-              <xsl:value-of select="format-dateTime(.,'[Y0001]-[M01]-[D01]')"/>
-            </xsl:otherwise>
-          </xsl:choose>
-            <xsl:choose>
-              <xsl:when test="position() != last()-1 and position() != last()">
-                <xsl:text>, </xsl:text>
-              </xsl:when>
-              <xsl:when test="position() = last()-1">
-                <xsl:text> and </xsl:text>
-              </xsl:when>
-            </xsl:choose>
-        </xsl:for-each>
-        <xsl:text>"],</xsl:text>
-      </xsl:when>
-    </xsl:choose>
     <!-- 14. Date Issued element. Optional. Not Repeatable -->
     <xsl:if test="$dateIssued != ''">
       <xsl:text>"dct_issued_s": "</xsl:text>
@@ -367,7 +363,7 @@
           </xsl:when>
           <xsl:otherwise>
             <xsl:for-each select="year-from-dateTime($beginDate) to year-from-dateTime($endDate)">
-              <xsl:value-of select="position()"/>
+              <xsl:value-of select="position()-1+year-from-dateTime($beginDate)"/>
               <xsl:if test="position() != last()">
                 <xsl:text>,</xsl:text>
               </xsl:if>
@@ -393,7 +389,7 @@
       </xsl:when>
       <xsl:when test="$titleDate != ''">
         <xsl:text>"gbl_indexYear_im": [</xsl:text>
-        <xsl:value-of select="year-from-dateTime($titleDate)"/>
+        <xsl:value-of select="$titleDate"/>
         <xsl:text>],</xsl:text>
       </xsl:when>
       <xsl:when test="$dateIssued != ''">
