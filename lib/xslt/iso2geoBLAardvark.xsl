@@ -298,7 +298,7 @@
                 <xsl:value-of select="$endDate"/>
               </xsl:when>
               <xsl:when test="month-from-dateTime($endDate) = 1 and day-from-dateTime($endDate) = 1">
-                <xsl:value-of select="year-from-date($endDate)"/>
+                <xsl:value-of select="year-from-dateTime($endDate)"/>
               </xsl:when>
               <xsl:otherwise>
                 <xsl:value-of select="format-dateTime($endDate,'[Y0001]-[M01]-[D01]')"/>
