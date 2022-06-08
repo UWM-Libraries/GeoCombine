@@ -258,7 +258,7 @@
       <xsl:text>],</xsl:text>
     </xsl:if>
     <!-- 10. Future site of Subject element. Optional. Repeatable -->
-    <!-- 11. Future site of Theme element. Optional. Repeatable /MD_Metadata/identificationInfo[1]/MD_DataIdentification[1]/topicCategory[1]/MD_TopicCategoryCode[1] -->
+    <!-- 11. Theme element. Optional. Repeatable -->
     <xsl:if test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:topicCategory">
       <xsl:text>"dcat_theme_sm": [</xsl:text>
       <xsl:for-each select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:topicCategory">
@@ -282,45 +282,71 @@
     <!-- 12. Future site of Keyword element. Optional. Repeatable -->
     <!-- 13. Temporal Coverage element. Recommended. Repeatable -->
     <xsl:choose>
-      <xsl:when test="$beginDate != '' and $endDate != ''">
-        <xsl:text>"dct_temporal_sm": ["</xsl:text>
+      <xsl:when test="count(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent) = 1">
         <xsl:choose>
-          <xsl:when test="month-from-dateTime($beginDate) = 1 and day-from-dateTime($beginDate) = 1">
-            <xsl:value-of select="year-from-date($beginDate)"/>
+          <xsl:when test="$beginDate != '' and $endDate != ''">
+            <xsl:text>"dct_temporal_sm": ["</xsl:text>
+            <xsl:choose>
+              <xsl:when test="month-from-dateTime($beginDate) = 1 and day-from-dateTime($beginDate) = 1">
+                <xsl:value-of select="year-from-date($beginDate)"/>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:value-of select="format-dateTime($beginDate,'[Y0001]-[M01]-[D01]')"/>
+              </xsl:otherwise>
+            </xsl:choose>
+            <xsl:text> to </xsl:text>
+            <xsl:choose>
+              <xsl:when test="$endDate = '?'">
+                <xsl:value-of select="$endDate"/>
+              </xsl:when>
+              <xsl:when test="month-from-dateTime($endDate) = 1 and day-from-dateTime($endDate) = 1">
+                <xsl:value-of select="year-from-date($endDate)"/>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:value-of select="format-dateTime($endDate,'[Y0001]-[M01]-[D01]')"/>
+              </xsl:otherwise>
+            </xsl:choose>
+            <xsl:text>"],</xsl:text>
           </xsl:when>
-          <xsl:otherwise>
-            <xsl:value-of select="format-dateTime($beginDate,'[Y0001]-[M01]-[D01]')"/>
-          </xsl:otherwise>
+          <xsl:when test="$temporalInstance != ''">
+            <xsl:text>"dct_temporal_sm": ["</xsl:text>
+            <xsl:choose>
+              <xsl:when test="month-from-dateTime($temporalInstance) = 1 and day-from-dateTime($temporalInstance) = 1">
+                <xsl:value-of select="year-from-dateTime($temporalInstance)"/>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:value-of select="format-dateTime($temporalInstance,'[Y0001]-[M01]-[D01]')"/>
+              </xsl:otherwise>
+            </xsl:choose>
+            <xsl:text>"],</xsl:text>
+          </xsl:when>
+          <xsl:when test="not(empty($titleDate))">
+            <xsl:text>"dct_temporal_sm": ["</xsl:text>
+            <xsl:value-of select="$titleDate"/>
+            <xsl:text>"],</xsl:text>
+          </xsl:when>
         </xsl:choose>
-        <xsl:text> to </xsl:text>
-        <xsl:choose>
-          <xsl:when test="$endDate = '?'">
-            <xsl:value-of select="$endDate"/>
-          </xsl:when>
-          <xsl:when test="month-from-dateTime($endDate) = 1 and day-from-dateTime($endDate) = 1">
-            <xsl:value-of select="year-from-date($endDate)"/>
-          </xsl:when>
-          <xsl:otherwise>
-            <xsl:value-of select="format-dateTime($endDate,'[Y0001]-[M01]-[D01]')"/>
-          </xsl:otherwise>
-        </xsl:choose>
-        <xsl:text>"],</xsl:text>
       </xsl:when>
-      <xsl:when test="$temporalInstance != ''">
+      <xsl:when test="count(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent) &gt; 1">
         <xsl:text>"dct_temporal_sm": ["</xsl:text>
-        <xsl:choose>
-          <xsl:when test="month-from-dateTime($temporalInstance) = 1 and day-from-dateTime($temporalInstance) = 1">
-            <xsl:value-of select="year-from-dateTime($temporalInstance)"/>
-          </xsl:when>
-          <xsl:otherwise>
-            <xsl:value-of select="format-dateTime($temporalInstance,'[Y0001]-[M01]-[D01]')"/>
-          </xsl:otherwise>
-        </xsl:choose>
-        <xsl:text>"],</xsl:text>
-      </xsl:when>
-      <xsl:when test="not(empty($titleDate))">
-        <xsl:text>"dct_temporal_sm": ["</xsl:text>
-        <xsl:value-of select="$titleDate"/>
+        <xsl:for-each select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification//gmd:temporalElement//gml:timePosition">
+          <xsl:choose>
+            <xsl:when test="month-from-dateTime(.) = 1 and day-from-dateTime(.) = 1">
+              <xsl:value-of select="year-from-dateTime(.)"/>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:value-of select="format-dateTime(.,'[Y0001]-[M01]-[D01]')"/>
+            </xsl:otherwise>
+          </xsl:choose>
+            <xsl:choose>
+              <xsl:when test="position() != last()-1 and position() != last()">
+                <xsl:text>, </xsl:text>
+              </xsl:when>
+              <xsl:when test="position() = last()-1">
+                <xsl:text> and </xsl:text>
+              </xsl:when>
+            </xsl:choose>
+        </xsl:for-each>
         <xsl:text>"],</xsl:text>
       </xsl:when>
     </xsl:choose>
@@ -330,20 +356,77 @@
       <xsl:value-of select="$dateIssued"/>
       <xsl:text>",</xsl:text>
     </xsl:if>
-    <!-- 15. Index Year element. Recommended. Repeatable 
-    <xsl:if test="$temporalCoverage != '' or $dateIssued != ''">
-      <xsl:text>"gbl_indexYear_im": [</xsl:text>
-      <xsl:choose>
-        <xsl:when test="$temporalCoverage != ''">
-          <xsl:value-of select="$temporalCoverage"/>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:value-of select="$dateIssued"/>
-        </xsl:otherwise>
-      </xsl:choose>
-      <xsl:text>],</xsl:text>
-    </xsl:if>-->
+    <!-- 15. Index Year element. Recommended. Repeatable -->
+    <xsl:choose>
+      <xsl:when test="$beginDate != '' and $endDate != ''">
+        <xsl:text>"gbl_indexYear_im": [</xsl:text>
+        <xsl:choose>
+          <xsl:when test="$endDate = '?'">
+            <xsl:value-of select="$beginDate"/>
+            <xsl:text>],</xsl:text>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:for-each select="year-from-dateTime($beginDate) to year-from-dateTime($endDate)">
+              <xsl:value-of select="position()"/>
+              <xsl:if test="position() != last()">
+                <xsl:text>,</xsl:text>
+              </xsl:if>
+            </xsl:for-each>
+            <xsl:text>],</xsl:text>            
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:when>
+      <xsl:when test="count(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent) &gt; 1">
+        <xsl:text>"gbl_indexYear_im": [</xsl:text>
+        <xsl:for-each select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification//gmd:temporalElement//gml:timePosition">
+          <xsl:value-of select="year-from-dateTime(.)"/>
+          <xsl:if test="position() != last()">
+            <xsl:text>,</xsl:text>
+          </xsl:if>
+        </xsl:for-each>
+        <xsl:text>],</xsl:text>
+      </xsl:when>
+      <xsl:when test="$temporalInstance != ''">
+        <xsl:text>"gbl_indexYear_im": [</xsl:text>
+        <xsl:value-of select="year-from-dateTime($temporalInstance)"/>
+        <xsl:text>],</xsl:text>
+      </xsl:when>
+      <xsl:when test="$titleDate != ''">
+        <xsl:text>"gbl_indexYear_im": [</xsl:text>
+        <xsl:value-of select="year-from-dateTime($titleDate)"/>
+        <xsl:text>],</xsl:text>
+      </xsl:when>
+      <xsl:when test="$dateIssued != ''">
+        <xsl:text>"gbl_indexYear_im": [</xsl:text>
+        <xsl:value-of select="year-from-dateTime($dateIssued)"/>
+        <xsl:text>],</xsl:text>
+      </xsl:when>
+    </xsl:choose>
     <!-- 16. Future site of Date Range element. Optional. Repeatable -->
+    <xsl:choose>
+      <xsl:when test="$beginDate != '' and $endDate != '' and $endDate != '?'">
+        <xsl:text>"gbl_dateRange_drsim" : "[</xsl:text>
+        <xsl:value-of select="year-from-dateTime($beginDate)"/>
+        <xsl:text> TO </xsl:text>
+        <xsl:value-of select="year-from-dateTime($endDate)"/>
+        <xsl:text>]",</xsl:text>
+      </xsl:when>
+      <xsl:when  test="count(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent) &gt; 1">
+        <xsl:text>"gbl_dateRange_drsim" : "[</xsl:text>
+        <xsl:for-each select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification//gmd:temporalElement//gml:timePosition">
+          <xsl:choose>
+            <xsl:when test="position() = 1">
+              <xsl:value-of select="year-from-dateTime(.)"/>
+              <xsl:text> TO </xsl:text>
+            </xsl:when>
+            <xsl:when test="position() = last()">
+              <xsl:value-of select="year-from-dateTime(.)"/>
+              <xsl:text>]",</xsl:text>
+            </xsl:when>
+          </xsl:choose>
+        </xsl:for-each>
+      </xsl:when>
+    </xsl:choose>
     <!-- 17. Spatial Coverage element. Recommended. Repeatable -->
     <xsl:if       test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:type/gmd:MD_KeywordTypeCode[@codeListValue = 'place']">
       <xsl:text>"dct_spatial_sm": [</xsl:text>
@@ -425,14 +508,24 @@
     <!-- 25. Future site of Is Version Of element. Optional. Repeatable -->
     <!-- 26. Future site of Replaces element. Optional. Repeatable -->
     <!-- 27. Future site of Is Replaced By element. Optional. Repeatable -->
-    <!-- 28. Rights element. Recommended. Not Repeatable. Currently this is just taking all of the Character String content from any 'resourceConstraints' elements. I'll need to consult with Stephen Appel to see which ones would be the most important. Probably need to get rid of ones that just come through as 'None'. Maybe include this link: https://uwm.edu/libraries/digital-collections/copyright-digcoll/ "Please see the UWM Libraries statement on Copyright and Digital Collections.[Data is copyright and licensed for use.]
-" -->
+    <!-- 28. Rights element. Recommended. Not Repeatable. -->
     <xsl:if test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints//gco:CharacterString">
       <xsl:text>"dct_rights_sm": [</xsl:text>
-      <xsl:for-each select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints//gco:CharacterString">
+      <xsl:for-each select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints//gco:CharacterString[text() != 'None']">
         <xsl:text>"</xsl:text>
         <xsl:variable name="sub1" select="replace(., '\n', '&lt;br/&gt;')"/>
-        <xsl:value-of select="replace($sub1, '&#34;', '\\&#34;')"/>
+        <xsl:variable name="sub2" select="replace($sub1, '&#34;', '\\&#34;')"/>
+        <xsl:choose>
+          <xsl:when test="matches($sub2, 'Please see the UWM Libraries statement on Copyright and Digital Collections')">
+            <xsl:variable name="restrictURL">
+              <xsl:text>&lt;a href=\&quot;https://uwm.edu/libraries/digital-collections/copyright-digcoll/\&quot;&gt;Please see the UWM Libraries statement on Copyright and Digital Collections&lt;/a&gt;</xsl:text>
+            </xsl:variable>
+            <xsl:value-of select="concat($restrictURL, substring-after($sub2, 'Please see the UWM Libraries statement on Copyright and Digital Collections'))"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="$sub2"/>
+          </xsl:otherwise>
+        </xsl:choose>
         <xsl:text>"</xsl:text>
         <xsl:if test="position() != last()">
           <xsl:text>,</xsl:text>
