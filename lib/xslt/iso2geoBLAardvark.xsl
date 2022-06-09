@@ -69,7 +69,7 @@
         <xsl:when test="matches(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition, 'T')">
           <xsl:value-of select="substring-before(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition, 'T')"/>
         </xsl:when>
-        <xsl:when test="matches(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition, '^(\d{4}-[\d]{2}-[\d]{2}$')">
+        <xsl:when test="matches(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition, '^\d{4}-[\d]{2}-[\d]{2}$')">
           <xsl:value-of select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition"/>
         </xsl:when>
       </xsl:choose>
@@ -172,19 +172,19 @@
       <xsl:text>"dct_creator_sm": [</xsl:text>
 
       <xsl:for-each
-        select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty/gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode[@codeListValue = 'originator']">
-        <xsl:if test="ancestor-or-self::*/gmd:organisationName">
+        select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty[gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode/@codeListValue = 'originator' and not(gmd:CI_ResponsibleParty/*/gco:CharacterString=preceding-sibling::gmd:citedResponsibleParty/gmd:CI_ResponsibleParty/*/gco:CharacterString)]">
+        <xsl:if test="gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString">
           <xsl:text>"</xsl:text>
-          <xsl:value-of select="ancestor-or-self::*/gmd:organisationName"/>
+          <xsl:value-of select="gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString"/>
           <xsl:text>"</xsl:text>
           <xsl:if test="position() != last()">
             <xsl:text>,</xsl:text>
           </xsl:if>
         </xsl:if>
 
-        <xsl:if test="ancestor-or-self::*/gmd:individualName">
+        <xsl:if test="gmd:CI_ResponsibleParty/gmd:individualName/gco:CharacterString">
           <xsl:text>"</xsl:text>
-          <xsl:value-of select="ancestor-or-self::*/gmd:individualName"/>
+          <xsl:value-of select="gmd:CI_ResponsibleParty/gmd:individualName/gco:CharacterString"/>
           <xsl:text>"</xsl:text>
           <xsl:if test="position() != last()">
             <xsl:text>,</xsl:text>
