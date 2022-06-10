@@ -143,8 +143,10 @@
       <xsl:for-each
         select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:abstract">
         <xsl:text>"</xsl:text>
-        <xsl:variable name="sub2" select="replace(gco:CharacterString, '\n', '&lt;br/&gt;')"/>
-        <xsl:value-of select="replace($sub2, '&#34;', '\\&#34;')"/>
+        <xsl:variable name="sub1" select="replace(gco:CharacterString, '\n', '&lt;br/&gt;')"/>
+        <xsl:variable name="sub2" select="replace($sub1,'\\', '\\\\')"/>
+        <xsl:variable name="sub3" select="replace($sub2, '&#34;', '\\&#34;')"/>
+        <xsl:value-of select="$sub3"/>
         <xsl:text>"</xsl:text>
         <xsl:if test="position() != last()">
           <xsl:text>,</xsl:text>
@@ -153,7 +155,7 @@
       <xsl:text>],</xsl:text>
     </xsl:if>
     <!-- 04. Language element. Optional. Repeatable -->
-    <xsl:if test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:language">
+    <xsl:if test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:language[not(@gco:nilReason='missing')]">
       <xsl:text>"dct_language_sm": [</xsl:text>
       <xsl:for-each
         select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:language">
@@ -167,28 +169,34 @@
       <xsl:text>],</xsl:text>
     </xsl:if>
     <!-- 05. Creator element. Recommended. Repeatable -->
-    <xsl:if
-      test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty/gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode[@codeListValue = 'originator']">
+    <xsl:if test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty/gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode[@codeListValue = 'originator']">
       <xsl:text>"dct_creator_sm": [</xsl:text>
 
-      <xsl:for-each
-        select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty[gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode/@codeListValue = 'originator' and not(gmd:CI_ResponsibleParty/*/gco:CharacterString=preceding-sibling::gmd:citedResponsibleParty/gmd:CI_ResponsibleParty/*/gco:CharacterString)]">
-        <xsl:if test="gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString">
-          <xsl:text>"</xsl:text>
-          <xsl:value-of select="gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString"/>
-          <xsl:text>"</xsl:text>
-          <xsl:if test="position() != last()">
-            <xsl:text>,</xsl:text>
-          </xsl:if>
-        </xsl:if>
-
-        <xsl:if test="gmd:CI_ResponsibleParty/gmd:individualName/gco:CharacterString">
-          <xsl:text>"</xsl:text>
-          <xsl:value-of select="gmd:CI_ResponsibleParty/gmd:individualName/gco:CharacterString"/>
-          <xsl:text>"</xsl:text>
-          <xsl:if test="position() != last()">
-            <xsl:text>,</xsl:text>
-          </xsl:if>
+      <xsl:for-each select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty[gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode/@codeListValue = 'originator' and not(gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString|gmd:individualName/gco:CharacterString=preceding-sibling::gmd:citedResponsibleParty/gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString|gmd:individualName/gco:CharacterString)]">
+        <xsl:choose>
+          <xsl:when test="gmd:CI_ResponsibleParty/gmd:individualName/gco:CharacterString and gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString">
+            <xsl:text>"</xsl:text>
+            <xsl:value-of select="gmd:CI_ResponsibleParty/gmd:individualName/gco:CharacterString"/>
+            <xsl:text> (</xsl:text>
+            <xsl:if test="gmd:CI_ResponsibleParty/gmd:positionName">
+              <xsl:value-of select="gmd:CI_ResponsibleParty/gmd:positionName/gco:CharacterString"/>
+            </xsl:if>
+            <xsl:text>, </xsl:text>
+            <xsl:value-of select="gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString"/>
+            <xsl:text>)"</xsl:text>
+          </xsl:when>
+          <xsl:when test="gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString">
+            <xsl:text>"</xsl:text>
+            <xsl:value-of select="gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString"/>          <xsl:text>"</xsl:text>
+          </xsl:when>
+          <xsl:when test="gmd:CI_ResponsibleParty/gmd:individualName/gco:CharacterString">
+            <xsl:text>"</xsl:text>
+            <xsl:value-of select="gmd:CI_ResponsibleParty/gmd:individualName/gco:CharacterString"/>
+            <xsl:text>"</xsl:text>
+          </xsl:when>
+        </xsl:choose>
+        <xsl:if test="position() != last()">
+          <xsl:text>,</xsl:text>
         </xsl:if>
       </xsl:for-each>
       <xsl:text>],</xsl:text>
@@ -358,7 +366,7 @@
         <xsl:text>"gbl_indexYear_im": [</xsl:text>
         <xsl:choose>
           <xsl:when test="$endDate = '?'">
-            <xsl:value-of select="$beginDate"/>
+            <xsl:value-of select="year-from-dateTime($beginDate)"/>
             <xsl:text>],</xsl:text>
           </xsl:when>
           <xsl:otherwise>
@@ -426,9 +434,8 @@
     <!-- 17. Spatial Coverage element. Recommended. Repeatable -->
     <xsl:if       test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:type/gmd:MD_KeywordTypeCode[@codeListValue = 'place']">
       <xsl:text>"dct_spatial_sm": [</xsl:text>
-      <xsl:for-each
-        select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords[gmd:type/gmd:MD_KeywordTypeCode[@codeListValue = 'place']]">
-        <xsl:for-each select="gmd:keyword">
+      <xsl:for-each select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords[gmd:MD_Keywords/gmd:type/gmd:MD_KeywordTypeCode[@codeListValue = 'place']]">
+        <xsl:for-each select="gmd:MD_Keywords/gmd:keyword">
           <xsl:text>"</xsl:text>
           <xsl:value-of select="gco:CharacterString"/>
           <xsl:text>"</xsl:text>
@@ -436,6 +443,9 @@
             <xsl:text>,</xsl:text>
           </xsl:if>
         </xsl:for-each>
+        <xsl:if test="position() != last()">
+          <xsl:text>,</xsl:text>
+        </xsl:if>
       </xsl:for-each>
       <xsl:text>],</xsl:text>
     </xsl:if>
@@ -510,16 +520,17 @@
       <xsl:for-each select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints//gco:CharacterString[text() != 'None']">
         <xsl:text>"</xsl:text>
         <xsl:variable name="sub1" select="replace(., '\n', '&lt;br/&gt;')"/>
-        <xsl:variable name="sub2" select="replace($sub1, '&#34;', '\\&#34;')"/>
+        <xsl:variable name="sub2" select="replace($sub1,'\\', '\\\\')"/>
+        <xsl:variable name="sub3" select="replace($sub2, '&#34;', '\\&#34;')"/>
         <xsl:choose>
-          <xsl:when test="matches($sub2, 'Please see the UWM Libraries statement on Copyright and Digital Collections')">
+          <xsl:when test="matches($sub3, 'Please see the UWM Libraries statement on Copyright and Digital Collections')">
             <xsl:variable name="restrictURL">
               <xsl:text>&lt;a href=\&quot;https://uwm.edu/libraries/digital-collections/copyright-digcoll/\&quot;&gt;Please see the UWM Libraries statement on Copyright and Digital Collections&lt;/a&gt;</xsl:text>
             </xsl:variable>
-            <xsl:value-of select="concat($restrictURL, substring-after($sub2, 'Please see the UWM Libraries statement on Copyright and Digital Collections'))"/>
+            <xsl:value-of select="concat($restrictURL, substring-after($sub3, 'Please see the UWM Libraries statement on Copyright and Digital Collections'))"/>
           </xsl:when>
           <xsl:otherwise>
-            <xsl:value-of select="$sub2"/>
+            <xsl:value-of select="$sub3"/>
           </xsl:otherwise>
         </xsl:choose>
         <xsl:text>"</xsl:text>
