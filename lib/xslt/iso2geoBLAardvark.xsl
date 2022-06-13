@@ -1,19 +1,20 @@
 <xsl:stylesheet xmlns="http://www.loc.gov/mods/v3" xmlns:gco="http://www.isotc211.org/2005/gco"
   xmlns:gmi="http://www.isotc211.org/2005/gmi" xmlns:gmd="http://www.isotc211.org/2005/gmd"
   xmlns:gml="http://www.opengis.net/gml" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" exclude-result-prefixes="gml gmd gco gmi xsl">
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.0"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" exclude-result-prefixes="gml gmd gco gmi xsl">
   <xsl:output method="text" encoding="UTF-8" version="1.0" omit-xml-declaration="yes" indent="yes"
     media-type="application/json"/>
   <xsl:strip-space elements="*"/>
   <xsl:param name="zipName" select="'data.zip'"/>
-  
+
   <xsl:variable name="ThemeTranslate" select="document('TermKey.xml')"/>
   <xsl:key name="ThemeKey" match="Themes/theme" use="@ISOname"/>
-  
-  
+
+
 
   <xsl:template match="/">
-    
+
     <!-- institution. This selects the individual name element if it is coded as 'resourceProvider'. AGSL is using that element to specifiy the institution, though it's probably more properly used for an individual creating the metadata. This definition needs to be more generalized and codified. OGM Aardvark recommends a controlled list for this based on the institutions that are using GeoBlacklight so they can be associated with logos. Since we don't have that, we'll just go with what we've got.  -->
     <xsl:variable name="institution"
       select="gmd:MD_Metadata/gmd:contact/gmd:CI_ResponsibleParty/gmd:individualName[following-sibling::gmd:role/gmd:CI_RoleCode[text() = 'resourceProvider']]/gco:CharacterString"/>
@@ -25,7 +26,7 @@
         select="number(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:northBoundLatitude/gco:Decimal)"
       />
     </xsl:variable>
-    
+
     <xsl:variable name="lowerCorner">
       <xsl:value-of
         select="number(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:westBoundLongitude/gco:Decimal)"/>
@@ -34,11 +35,6 @@
         select="number(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:southBoundLatitude/gco:Decimal)"
       />
     </xsl:variable>
-    
-    
-
-    <!--A sequence of more than one item is not allowed as the first argument of fn:number()-->
-
 
     <xsl:variable name="format">
       <xsl:choose>
@@ -66,53 +62,80 @@
     </xsl:variable>
     <xsl:variable name="temporalBegin">
       <xsl:choose>
-        <xsl:when test="matches(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition, 'T')">
-          <xsl:value-of select="substring-before(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition, 'T')"/>
+        <xsl:when
+          test="matches(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition, 'T')">
+          <xsl:value-of
+            select="substring-before(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition, 'T')"
+          />
         </xsl:when>
-        <xsl:when test="matches(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition, '^\d{4}-[\d]{2}-[\d]{2}$')">
-          <xsl:value-of select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition"/>
+        <xsl:when
+          test="matches(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition, '^\d{4}-[\d]{2}-[\d]{2}$')">
+          <xsl:value-of
+            select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition"
+          />
         </xsl:when>
       </xsl:choose>
     </xsl:variable>
     <xsl:variable name="beginDate">
       <xsl:choose>
-        <xsl:when test="matches(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition, 'T')">
-          <xsl:value-of select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition"/>
+        <xsl:when
+          test="matches(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition, 'T')">
+          <xsl:value-of
+            select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition"
+          />
         </xsl:when>
-        <xsl:when test="matches(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition, '^\d{4}-\d{2}-\d{2}$')">
-          <xsl:value-of select="dateTime(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition, xs:time('00:00:00'))"/>
+        <xsl:when
+          test="matches(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition, '^\d{4}-\d{2}-\d{2}$')">
+          <xsl:value-of
+            select="dateTime(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition, xs:time('00:00:00'))"
+          />
         </xsl:when>
       </xsl:choose>
     </xsl:variable>
     <xsl:variable name="endDate">
       <xsl:choose>
-        <xsl:when test="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endPosition != ''">
-          <xsl:value-of select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endPosition"/>
+        <xsl:when
+          test="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endPosition != ''">
+          <xsl:value-of
+            select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endPosition"
+          />
         </xsl:when>
-        <xsl:when test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endPosition/@indeterminatePosition">
+        <xsl:when
+          test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endPosition/@indeterminatePosition">
           <xsl:text>?</xsl:text>
         </xsl:when>
       </xsl:choose>
     </xsl:variable>
     <xsl:variable name="temporalInstance">
       <xsl:choose>
-        <xsl:when test="count(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant/gml:timePosition) = 1">
+        <xsl:when
+          test="count(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant/gml:timePosition) = 1">
           <xsl:choose>
-            <xsl:when test="matches(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant/gml:timePosition, 'T')">
-              <xsl:value-of select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant/gml:timePosition"/>
+            <xsl:when
+              test="matches(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant/gml:timePosition, 'T')">
+              <xsl:value-of
+                select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant/gml:timePosition"
+              />
             </xsl:when>
-            <xsl:when test="matches(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant/gml:timePosition, '^\d{4}-\d{2}-\d{2}$')">
-              <xsl:value-of select="dateTime(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant/gml:timePosition, xs:time('00:00:00'))"/>
+            <xsl:when
+              test="matches(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant/gml:timePosition, '^\d{4}-\d{2}-\d{2}$')">
+              <xsl:value-of
+                select="dateTime(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant/gml:timePosition, xs:time('00:00:00'))"
+              />
             </xsl:when>
           </xsl:choose>
         </xsl:when>
       </xsl:choose>
     </xsl:variable>
-      <xsl:variable name="titleDate">
-        <xsl:value-of select="substring(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString, string-length(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString)-3)"/>
+    <xsl:variable name="titleDate">
+      <xsl:value-of
+        select="substring(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString, string-length(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString) - 3)"
+      />
     </xsl:variable>
     <xsl:variable name="dateIssued">
-      <xsl:value-of select="year-from-date(xs:date(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:date/gmd:CI_Date[gmd:dateType/gmd:CI_DateTypeCode[text()='publication']]/gmd:date/gco:Date))"/>
+      <xsl:value-of
+        select="year-from-date(xs:date(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:date/gmd:CI_Date[gmd:dateType/gmd:CI_DateTypeCode[text() = 'publication']]/gmd:date/gco:Date))"
+      />
     </xsl:variable>
 
     <xsl:variable name="identifier">
@@ -144,7 +167,7 @@
         select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:abstract">
         <xsl:text>"</xsl:text>
         <xsl:variable name="sub1" select="replace(gco:CharacterString, '\n', '&lt;br/&gt;')"/>
-        <xsl:variable name="sub2" select="replace($sub1,'\\', '\\\\')"/>
+        <xsl:variable name="sub2" select="replace($sub1, '\\', '\\\\')"/>
         <xsl:variable name="sub3" select="replace($sub2, '&#34;', '\\&#34;')"/>
         <xsl:value-of select="$sub3"/>
         <xsl:text>"</xsl:text>
@@ -155,7 +178,8 @@
       <xsl:text>],</xsl:text>
     </xsl:if>
     <!-- 04. Language element. Optional. Repeatable -->
-    <xsl:if test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:language[not(@gco:nilReason='missing')]">
+    <xsl:if
+      test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:language[not(@gco:nilReason = 'missing')]">
       <xsl:text>"dct_language_sm": [</xsl:text>
       <xsl:for-each
         select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:language">
@@ -169,12 +193,15 @@
       <xsl:text>],</xsl:text>
     </xsl:if>
     <!-- 05. Creator element. Recommended. Repeatable -->
-    <xsl:if test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty/gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode[@codeListValue = 'originator']">
+    <xsl:if
+      test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty/gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode[@codeListValue = 'originator']">
       <xsl:text>"dct_creator_sm": [</xsl:text>
 
-      <xsl:for-each select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty[gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode/@codeListValue = 'originator' and not(gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString|gmd:individualName/gco:CharacterString=preceding-sibling::gmd:citedResponsibleParty/gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString|gmd:individualName/gco:CharacterString)]">
+      <xsl:for-each
+        select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty[gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode/@codeListValue = 'originator' and not(gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString | gmd:individualName/gco:CharacterString = preceding-sibling::gmd:citedResponsibleParty/gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString | gmd:individualName/gco:CharacterString)]">
         <xsl:choose>
-          <xsl:when test="gmd:CI_ResponsibleParty/gmd:individualName/gco:CharacterString and gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString">
+          <xsl:when
+            test="gmd:CI_ResponsibleParty/gmd:individualName/gco:CharacterString and gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString">
             <xsl:text>"</xsl:text>
             <xsl:value-of select="gmd:CI_ResponsibleParty/gmd:individualName/gco:CharacterString"/>
             <xsl:text> (</xsl:text>
@@ -187,7 +214,8 @@
           </xsl:when>
           <xsl:when test="gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString">
             <xsl:text>"</xsl:text>
-            <xsl:value-of select="gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString"/>          <xsl:text>"</xsl:text>
+            <xsl:value-of select="gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString"/>
+            <xsl:text>"</xsl:text>
           </xsl:when>
           <xsl:when test="gmd:CI_ResponsibleParty/gmd:individualName/gco:CharacterString">
             <xsl:text>"</xsl:text>
@@ -202,9 +230,11 @@
       <xsl:text>],</xsl:text>
     </xsl:if>
     <!-- 06. Publisher element. Recommended. Repeatable -->
-    <xsl:if test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty/gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode[@codeListValue = 'publisher']">
+    <xsl:if
+      test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty/gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode[@codeListValue = 'publisher']">
       <xsl:text>"dct_publisher_sm": [</xsl:text>
-      <xsl:for-each select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty/gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode[@codeListValue = 'publisher']">
+      <xsl:for-each
+        select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty/gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode[@codeListValue = 'publisher']">
         <xsl:if test="ancestor-or-self::*/gmd:organisationName">
           <xsl:text>"</xsl:text>
           <xsl:value-of select="ancestor-or-self::*/gmd:organisationName"/>
@@ -231,18 +261,20 @@
       <xsl:text>",</xsl:text>
     </xsl:if>
     <!-- 08. Resource Class element. Required. Repeatable up to 5 times.  -->
-      <xsl:text>"gbl_resourceClass_sm": ["Datasets"],</xsl:text>
+    <xsl:text>"gbl_resourceClass_sm": ["Datasets"],</xsl:text>
     <!-- 09. Resource Type element. Recommended. Repeatable pull from FGDC-->
-    <xsl:if test="gmd:MD_Metadata/gmd:spatialRepresentationInfo/gmd:MD_VectorSpatialRepresentation/gmd:geometricObjects/gmd:MD_GeometricObjects/gmd:geometricObjectType/gmd:MD_GeometricObjectTypeCode/@codeListValue">
+    <xsl:if
+      test="gmd:MD_Metadata/gmd:spatialRepresentationInfo/gmd:MD_VectorSpatialRepresentation/gmd:geometricObjects/gmd:MD_GeometricObjects/gmd:geometricObjectType/gmd:MD_GeometricObjectTypeCode/@codeListValue">
       <xsl:text>"gbl_resourceType_sm": [</xsl:text>
-      <xsl:for-each select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords[descendant::gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString[text()='FGDC']]/gmd:keyword">
+      <xsl:for-each
+        select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords[descendant::gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString[text() = 'FGDC']]/gmd:keyword">
         <xsl:choose>
           <xsl:when test="matches(gco:CharacterString, '[P|p]olygon')">
-          <xsl:text>"Polygon data"</xsl:text>
-          <xsl:if test="position() != last()">
-            <xsl:text>,</xsl:text>
-          </xsl:if>
-        </xsl:when>
+            <xsl:text>"Polygon data"</xsl:text>
+            <xsl:if test="position() != last()">
+              <xsl:text>,</xsl:text>
+            </xsl:if>
+          </xsl:when>
           <xsl:when test="matches(gco:CharacterString, 'Point')">
             <xsl:text>"Point data"</xsl:text>
             <xsl:if test="position() != last()">
@@ -267,19 +299,21 @@
     </xsl:if>
     <!-- 10. Future site of Subject element. Optional. Repeatable -->
     <!-- 11. Theme element. Optional. Repeatable -->
-    <xsl:if test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:topicCategory">
+    <xsl:if
+      test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:topicCategory">
       <xsl:text>"dcat_theme_sm": [</xsl:text>
-      <xsl:for-each select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:topicCategory">
+      <xsl:for-each
+        select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:topicCategory">
         <xsl:variable name="CatCode" select="gmd:MD_TopicCategoryCode"/>
         <xsl:for-each select="$ThemeTranslate">
-        <xsl:for-each select="key('ThemeKey', $CatCode)">
-          <xsl:text>"</xsl:text>
-          <xsl:value-of select="@themeName"/>
-          <xsl:text>"</xsl:text>          
-          <xsl:if test="position() != last()">
-            <xsl:text>,</xsl:text>
-          </xsl:if>
-        </xsl:for-each>
+          <xsl:for-each select="key('ThemeKey', $CatCode)">
+            <xsl:text>"</xsl:text>
+            <xsl:value-of select="@themeName"/>
+            <xsl:text>"</xsl:text>
+            <xsl:if test="position() != last()">
+              <xsl:text>,</xsl:text>
+            </xsl:if>
+          </xsl:for-each>
         </xsl:for-each>
         <xsl:if test="position() != last()">
           <xsl:text>,</xsl:text>
@@ -289,71 +323,74 @@
     </xsl:if>
     <!-- 12. Future site of Keyword element. Optional. Repeatable -->
     <!-- 13. Temporal Coverage element. Recommended. Repeatable -->
+    <xsl:choose>
+      <xsl:when test="$beginDate != '' and $endDate != ''">
+        <xsl:text>"dct_temporal_sm": ["</xsl:text>
         <xsl:choose>
-          <xsl:when test="$beginDate != '' and $endDate != ''">
-            <xsl:text>"dct_temporal_sm": ["</xsl:text>
-            <xsl:choose>
-              <xsl:when test="month-from-dateTime($beginDate) = 1 and day-from-dateTime($beginDate) = 1">
-                <xsl:value-of select="year-from-dateTime($beginDate)"/>
-              </xsl:when>
-              <xsl:otherwise>
-                <xsl:value-of select="format-dateTime($beginDate,'[Y0001]-[M01]-[D01]')"/>
-              </xsl:otherwise>
-            </xsl:choose>
-            <xsl:text> to </xsl:text>
-            <xsl:choose>
-              <xsl:when test="$endDate = '?'">
-                <xsl:value-of select="$endDate"/>
-              </xsl:when>
-              <xsl:when test="month-from-dateTime($endDate) = 1 and day-from-dateTime($endDate) = 1">
-                <xsl:value-of select="year-from-dateTime($endDate)"/>
-              </xsl:when>
-              <xsl:otherwise>
-                <xsl:value-of select="format-dateTime($endDate,'[Y0001]-[M01]-[D01]')"/>
-              </xsl:otherwise>
-            </xsl:choose>
-            <xsl:text>"],</xsl:text>
+          <xsl:when test="month-from-dateTime($beginDate) = 1 and day-from-dateTime($beginDate) = 1">
+            <xsl:value-of select="year-from-dateTime($beginDate)"/>
           </xsl:when>
-          <xsl:when test="$temporalInstance != ''">
-            <xsl:text>"dct_temporal_sm": ["</xsl:text>
-            <xsl:choose>
-              <xsl:when test="month-from-dateTime($temporalInstance) = 1 and day-from-dateTime($temporalInstance) = 1">
-                <xsl:value-of select="year-from-dateTime($temporalInstance)"/>
-              </xsl:when>
-              <xsl:otherwise>
-                <xsl:value-of select="format-dateTime($temporalInstance,'[Y0001]-[M01]-[D01]')"/>
-              </xsl:otherwise>
-            </xsl:choose>
-            <xsl:text>"],</xsl:text>
-          </xsl:when>
-          <xsl:when test="not(empty($titleDate))">
-            <xsl:text>"dct_temporal_sm": ["</xsl:text>
-            <xsl:value-of select="$titleDate"/>
-            <xsl:text>"],</xsl:text>
-          </xsl:when>
-          <xsl:when test="count(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification//gmd:temporalElement//gml:timePosition) &gt; 1">
-            <xsl:text>"dct_temporal_sm": ["</xsl:text>
-            <xsl:for-each select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification//gmd:temporalElement//gml:timePosition">
-              <xsl:choose>
-                <xsl:when test="month-from-dateTime(.) = 1 and day-from-dateTime(.) = 1">
-                  <xsl:value-of select="year-from-dateTime(.)"/>
-                </xsl:when>
-                <xsl:otherwise>
-                  <xsl:value-of select="format-dateTime(.,'[Y0001]-[M01]-[D01]')"/>
-                </xsl:otherwise>
-              </xsl:choose>
-              <xsl:choose>
-                <xsl:when test="position() != last()-1 and position() != last()">
-                  <xsl:text>, </xsl:text>
-                </xsl:when>
-                <xsl:when test="position() = last()-1">
-                  <xsl:text> and </xsl:text>
-                </xsl:when>
-              </xsl:choose>
-            </xsl:for-each>
-            <xsl:text>"],</xsl:text>
-          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="format-dateTime($beginDate, '[Y0001]-[M01]-[D01]')"/>
+          </xsl:otherwise>
         </xsl:choose>
+        <xsl:text> to </xsl:text>
+        <xsl:choose>
+          <xsl:when test="$endDate = '?'">
+            <xsl:value-of select="$endDate"/>
+          </xsl:when>
+          <xsl:when test="month-from-dateTime($endDate) = 1 and day-from-dateTime($endDate) = 1">
+            <xsl:value-of select="year-from-dateTime($endDate)"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="format-dateTime($endDate, '[Y0001]-[M01]-[D01]')"/>
+          </xsl:otherwise>
+        </xsl:choose>
+        <xsl:text>"],</xsl:text>
+      </xsl:when>
+      <xsl:when test="$temporalInstance != ''">
+        <xsl:text>"dct_temporal_sm": ["</xsl:text>
+        <xsl:choose>
+          <xsl:when
+            test="month-from-dateTime($temporalInstance) = 1 and day-from-dateTime($temporalInstance) = 1">
+            <xsl:value-of select="year-from-dateTime($temporalInstance)"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="format-dateTime($temporalInstance, '[Y0001]-[M01]-[D01]')"/>
+          </xsl:otherwise>
+        </xsl:choose>
+        <xsl:text>"],</xsl:text>
+      </xsl:when>
+      <xsl:when test="not(empty($titleDate))">
+        <xsl:text>"dct_temporal_sm": ["</xsl:text>
+        <xsl:value-of select="$titleDate"/>
+        <xsl:text>"],</xsl:text>
+      </xsl:when>
+      <xsl:when
+        test="count(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification//gmd:temporalElement//gml:timePosition) &gt; 1">
+        <xsl:text>"dct_temporal_sm": ["</xsl:text>
+        <xsl:for-each
+          select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification//gmd:temporalElement//gml:timePosition">
+          <xsl:choose>
+            <xsl:when test="month-from-dateTime(.) = 1 and day-from-dateTime(.) = 1">
+              <xsl:value-of select="year-from-dateTime(.)"/>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:value-of select="format-dateTime(., '[Y0001]-[M01]-[D01]')"/>
+            </xsl:otherwise>
+          </xsl:choose>
+          <xsl:choose>
+            <xsl:when test="position() != last() - 1 and position() != last()">
+              <xsl:text>, </xsl:text>
+            </xsl:when>
+            <xsl:when test="position() = last() - 1">
+              <xsl:text> and </xsl:text>
+            </xsl:when>
+          </xsl:choose>
+        </xsl:for-each>
+        <xsl:text>"],</xsl:text>
+      </xsl:when>
+    </xsl:choose>
     <!-- 14. Date Issued element. Optional. Not Repeatable -->
     <xsl:if test="$dateIssued != ''">
       <xsl:text>"dct_issued_s": "</xsl:text>
@@ -371,18 +408,20 @@
           </xsl:when>
           <xsl:otherwise>
             <xsl:for-each select="year-from-dateTime($beginDate) to year-from-dateTime($endDate)">
-              <xsl:value-of select="position()-1+year-from-dateTime($beginDate)"/>
+              <xsl:value-of select="position() - 1 + year-from-dateTime($beginDate)"/>
               <xsl:if test="position() != last()">
                 <xsl:text>,</xsl:text>
               </xsl:if>
             </xsl:for-each>
-            <xsl:text>],</xsl:text>            
+            <xsl:text>],</xsl:text>
           </xsl:otherwise>
         </xsl:choose>
       </xsl:when>
-      <xsl:when test="count(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent) &gt; 1">
+      <xsl:when
+        test="count(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent) &gt; 1">
         <xsl:text>"gbl_indexYear_im": [</xsl:text>
-        <xsl:for-each select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification//gmd:temporalElement//gml:timePosition">
+        <xsl:for-each
+          select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification//gmd:temporalElement//gml:timePosition">
           <xsl:value-of select="year-from-dateTime(.)"/>
           <xsl:if test="position() != last()">
             <xsl:text>,</xsl:text>
@@ -415,9 +454,11 @@
         <xsl:value-of select="year-from-dateTime($endDate)"/>
         <xsl:text>]",</xsl:text>
       </xsl:when>
-      <xsl:when  test="count(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent) &gt; 1">
+      <xsl:when
+        test="count(/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent) &gt; 1">
         <xsl:text>"gbl_dateRange_drsim" : "[</xsl:text>
-        <xsl:for-each select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification//gmd:temporalElement//gml:timePosition">
+        <xsl:for-each
+          select="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification//gmd:temporalElement//gml:timePosition">
           <xsl:choose>
             <xsl:when test="position() = 1">
               <xsl:value-of select="year-from-dateTime(.)"/>
@@ -432,9 +473,11 @@
       </xsl:when>
     </xsl:choose>
     <!-- 17. Spatial Coverage element. Recommended. Repeatable -->
-    <xsl:if       test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:type/gmd:MD_KeywordTypeCode[@codeListValue = 'place']">
+    <xsl:if
+      test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:type/gmd:MD_KeywordTypeCode[@codeListValue = 'place']">
       <xsl:text>"dct_spatial_sm": [</xsl:text>
-      <xsl:for-each select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords[gmd:MD_Keywords/gmd:type/gmd:MD_KeywordTypeCode[@codeListValue = 'place']]">
+      <xsl:for-each
+        select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords[gmd:MD_Keywords/gmd:type/gmd:MD_KeywordTypeCode[@codeListValue = 'place']]">
         <xsl:for-each select="gmd:MD_Keywords/gmd:keyword">
           <xsl:text>"</xsl:text>
           <xsl:value-of select="gco:CharacterString"/>
@@ -451,20 +494,27 @@
     </xsl:if>
     <!-- 18. Geometry element. Recommended. Not Repeatable -->
     <xsl:choose>
-      <xsl:when test="count(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox) = 1">
+      <xsl:when
+        test="count(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox) = 1">
         <xsl:text>"locn_geometry": "ENVELOPE(</xsl:text>
-        <xsl:value-of select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:eastBoundLongitude/gco:Decimal"/>
+        <xsl:value-of
+          select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:eastBoundLongitude/gco:Decimal"/>
         <xsl:text>, </xsl:text>
-        <xsl:value-of select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:westBoundLongitude/gco:Decimal"/>
+        <xsl:value-of
+          select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:westBoundLongitude/gco:Decimal"/>
         <xsl:text>, </xsl:text>
-        <xsl:value-of select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:northBoundLatitude/gco:Decimal"/>
+        <xsl:value-of
+          select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:northBoundLatitude/gco:Decimal"/>
         <xsl:text>, </xsl:text>
-        <xsl:value-of select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:southBoundLatitude/gco:Decimal"/>
+        <xsl:value-of
+          select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:southBoundLatitude/gco:Decimal"/>
         <xsl:text>)",</xsl:text>
       </xsl:when>
-      <xsl:when test="count(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox) &gt; 1">
+      <xsl:when
+        test="count(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox) &gt; 1">
         <xsl:text>"locn_geometry": "MULTIPOLYGON(</xsl:text>
-        <xsl:for-each select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox">
+        <xsl:for-each
+          select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox">
           <xsl:variable name="e" select="gmd:eastBoundLongitude/gco:Decimal"/>
           <xsl:variable name="w" select="gmd:westBoundLongitude/gco:Decimal"/>
           <xsl:variable name="n" select="gmd:northBoundLatitude/gco:Decimal"/>
@@ -495,15 +545,20 @@
     </xsl:choose>
 
     <!-- 19. Bounding Box element. Recommended. Not Repeatable -->
-    <xsl:if test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox">
+    <xsl:if
+      test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox">
       <xsl:text>"dcat_bbox": "ENVELOPE(</xsl:text>
-      <xsl:value-of select="min(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:westBoundLongitude/gco:Decimal)"/>
+      <xsl:value-of
+        select="min(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:westBoundLongitude/gco:Decimal)"/>
       <xsl:text>, </xsl:text>
-      <xsl:value-of select="max(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:eastBoundLongitude/gco:Decimal)"/>
+      <xsl:value-of
+        select="max(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:eastBoundLongitude/gco:Decimal)"/>
       <xsl:text>, </xsl:text>
-      <xsl:value-of select="max(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:northBoundLatitude/gco:Decimal)"/>
+      <xsl:value-of
+        select="max(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:northBoundLatitude/gco:Decimal)"/>
       <xsl:text>, </xsl:text>
-      <xsl:value-of select="min(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:southBoundLatitude/gco:Decimal)"/>
+      <xsl:value-of
+        select="min(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:southBoundLatitude/gco:Decimal)"/>
       <xsl:text>)",</xsl:text>
     </xsl:if>
     <!-- 20. Future site of Centroid element. Optional. Not Repeatable -->
@@ -515,19 +570,24 @@
     <!-- 26. Future site of Replaces element. Optional. Repeatable -->
     <!-- 27. Future site of Is Replaced By element. Optional. Repeatable -->
     <!-- 28. Rights element. Recommended. Not Repeatable. -->
-    <xsl:if test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints//gco:CharacterString">
+    <xsl:if
+      test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints//gco:CharacterString">
       <xsl:text>"dct_rights_sm": [</xsl:text>
-      <xsl:for-each select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints//gco:CharacterString[text() != 'None']">
+      <xsl:for-each
+        select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints//gco:CharacterString[text() != 'None']">
         <xsl:text>"</xsl:text>
         <xsl:variable name="sub1" select="replace(., '\n', '&lt;br/&gt;')"/>
-        <xsl:variable name="sub2" select="replace($sub1,'\\', '\\\\')"/>
+        <xsl:variable name="sub2" select="replace($sub1, '\\', '\\\\')"/>
         <xsl:variable name="sub3" select="replace($sub2, '&#34;', '\\&#34;')"/>
         <xsl:choose>
-          <xsl:when test="matches($sub3, 'Please see the UWM Libraries statement on Copyright and Digital Collections')">
+          <xsl:when
+            test="matches($sub3, 'Please see the UWM Libraries statement on Copyright and Digital Collections')">
             <xsl:variable name="restrictURL">
               <xsl:text>&lt;a href=\&quot;https://uwm.edu/libraries/digital-collections/copyright-digcoll/\&quot;&gt;Please see the UWM Libraries statement on Copyright and Digital Collections&lt;/a&gt;</xsl:text>
             </xsl:variable>
-            <xsl:value-of select="concat($restrictURL, substring-after($sub3, 'Please see the UWM Libraries statement on Copyright and Digital Collections'))"/>
+            <xsl:value-of
+              select="concat($restrictURL, substring-after($sub3, 'Please see the UWM Libraries statement on Copyright and Digital Collections'))"
+            />
           </xsl:when>
           <xsl:otherwise>
             <xsl:value-of select="$sub3"/>
@@ -546,10 +606,12 @@
     <xsl:text>"dct_accessRights_s": </xsl:text>
     <xsl:choose>
       <!--A sequence of more than one item is not allowed as the first argument of fn:matches()-->
-      <xsl:when test="matches(string-join(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints/gmd:MD_LegalConstraints/gmd:otherConstraints/gco:CharacterString, ' '), 'Restricted to distribution to UW-System students, faculty, or staff for educational use')">
+      <xsl:when
+        test="matches(string-join(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints/gmd:MD_LegalConstraints/gmd:otherConstraints/gco:CharacterString, ' '), 'Restricted to distribution to UW-System students, faculty, or staff for educational use')">
         <xsl:text>"Restricted",</xsl:text>
       </xsl:when>
-      <xsl:when test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints/gmd:MD_LegalConstraints/gmd:useConstraints/gmd:accessConstraints[@codeListValue='restricted']">
+      <xsl:when
+        test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints/gmd:MD_LegalConstraints/gmd:useConstraints/gmd:accessConstraints[@codeListValue = 'restricted']">
         <xsl:text>"Restricted",</xsl:text>
       </xsl:when>
       <xsl:otherwise>
@@ -563,13 +625,13 @@
     <!-- 33. Future site of File Size element. Optional. Not Repeatable. As far as I can tell, this isn't included in the ISO metadata. It's possible we could extract it from the actual technical metadata of the files, though I don't think we could do that with XSLT very easily. Probably with Java or Ruby on Rails or whatever we use to crosswalk the Metadata, but since it's optional, I'm not sure it's worth it. Maybe transfer size-->
     <!-- 34. WxS Identifier. Conditional. Not Repeatable. Apparently this corresponds to the Layer ID from version 1.0. We'll need to decide if we're useing druid or urn (I don't know what those are) or if we're using this or whatever. For now I'm going to use druid, because it sounds cooler. -->
     <xsl:text>"gbl_wxsIdentifier_s": "druid:</xsl:text>
-      <xsl:value-of select="$identifier"/>
+    <xsl:value-of select="$identifier"/>
     <xsl:text>",</xsl:text>
     <!-- 35. References. Recommended. Not Repetable. I'm not entirely sure what this is, but I believe we'd use the URLs for our metadata, so I'm just plopping a base one and adding the ID for now.-->
     <xsl:text>"dct_references_s": "{\"http://schema.org/url\":\"http://purl.uwm.edu/</xsl:text>
-      <xsl:value-of select="$uuid"/>
+    <xsl:value-of select="$uuid"/>
     <xsl:text>\",\"http://schema.org/downloadUrl\":\"http://stacks.uwm.edu/file/druid:</xsl:text>
-      <xsl:value-of select="$uuid"/>
+    <xsl:value-of select="$uuid"/>
     <xsl:text>/data.zip\"}",</xsl:text>
     <!-- 36. ID element. Required. Not repeatable -->
     <xsl:text>"id": "</xsl:text>
@@ -578,7 +640,8 @@
     <!-- 37. Future site of Identifier element. Recommended. Repeatable. This could be any number of things, different IDs for the data, Call number, &c. but we'll have to decide what kind of content would go in here. -->
     <!-- 38. Modified element. Required. Not Repeatable. This is when the METADATA is modified, not the resource. -->
     <xsl:text>"gbl_mdModified_dt": "</xsl:text>
-      <xsl:value-of select="adjust-dateTime-to-timezone(current-dateTime(),xs:dayTimeDuration('PT0H'))"/>
+    <xsl:value-of
+      select="adjust-dateTime-to-timezone(current-dateTime(), xs:dayTimeDuration('PT0H'))"/>
     <xsl:text>",</xsl:text>
     <!-- 39. Metadata Version element. Required. Not Repeatable -->
     <xsl:text>"gbl_mdVersion_s": "Aardvark",</xsl:text>
@@ -604,7 +667,7 @@
             </xsl:for-each>
           </xsl:when>
         </xsl:choose> -->
-  
+
   <!-- content date: singular, or beginning date of range: YYYY
     <xsl:choose>
       <xsl:when
@@ -659,7 +722,7 @@
       </xsl:otherwise>
     </xsl:choose>
     <xsl:text>",</xsl:text> -->
-  
+
   <!-- content date: range YYYY-YYYY if dates differ
     <xsl:choose>
       <xsl:when
@@ -685,7 +748,7 @@
         <xsl:text>",</xsl:text>
       </xsl:when>
     </xsl:choose>-->
-  
+
   <!--<xsl:choose>
        <xsl:when test="gmd:MD_Metadata/gmd:hierarchyLevel/gmd:MD_ScopeCode[matches(@codeListValue, '[d|D]ataset$')] or gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:presentationForm/gmd:CI_PresentationFormCode[matches(@codeListValue, '^map')]">
          <xsl:for-each select="//*[@codeListValue[matches(self::node(), '[d|D]ataset$') or matches(self::node(), '^map')] and @codeListValue[ancestor::gmd:hierarchyLevel or ancestor::gmd:identificationInfo]]">
@@ -708,7 +771,7 @@
        </xsl:otherwise>
      </xsl:choose>
     <xsl:text>],</xsl:text>-->
-  
+
   <!-- Used to be subjects, but this was changed to Theme <xsl:if
       test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:topicCategory/gmd:MD_TopicCategoryCode">
       <xsl:text>"dc_subject_sm": [</xsl:text>
@@ -723,7 +786,7 @@
       </xsl:for-each>
       <xsl:text>],</xsl:text>
       </xsl:if> -->
-  
+
   <!-- <xsl:choose>
       <xsl:when
         test="contains(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:date/gmd:CI_Date/gmd:date/gco:DateTime, 'T')">
@@ -751,11 +814,11 @@
 
       <xsl:otherwise>unknown</xsl:otherwise>
     </xsl:choose>-->
-  
-  
-  
-  
-  
+
+
+
+
+
   <!--    <xsl:text>"layer_geom_type_s": "</xsl:text>
     <xsl:choose>
       <xsl:when
@@ -793,17 +856,17 @@
     <xsl:text>-</xsl:text>
     <xsl:value-of select="$identifier"/>
     <xsl:text>",</xsl:text> -->
-  
-  
+
+
   <!-- TODO: add inputs for other languages -->
   <!-- <field name="dc_language_s">
           <xsl:if test="contains(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:language | gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:language/gmd:LanguageCode, 'eng')">
             <xsl:text>English</xsl:text>
           </xsl:if>
         </field> -->
-  
+
   <!-- from DCMI type vocabulary -->
-  
+
   <!--<xsl:if
       test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:topicCategory/gmd:MD_TopicCategoryCode">
       <xsl:text>"dc_subject_sm": [</xsl:text>
