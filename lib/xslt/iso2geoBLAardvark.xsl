@@ -38,22 +38,15 @@
 
     <xsl:variable name="format">
       <xsl:choose>
-        <xsl:when
-          test="contains(gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributionFormat/gmd:MD_Format/gmd:name, 'Raster Dataset')">
-          <xsl:text>image/tiff</xsl:text>
+        <xsl:when test="contains(gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributionFormat/gmd:MD_Format/gmd:name/gco:CharacterString, 'Geodatabase')">
+          <xsl:text>Geodatabase</xsl:text>
         </xsl:when>
-        <xsl:when
-          test="contains(gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributionFormat/gmd:MD_Format/gmd:name, 'GeoTIFF')">
-          <xsl:text>image/tiff</xsl:text>
+        <xsl:when           test="gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributionFormat/gmd:MD_Format/gmd:name/gco:CharacterString='dBASE Table'">
+          <xsl:text>Tabular Data</xsl:text>
         </xsl:when>
-        <xsl:when
-          test="contains(gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributionFormat/gmd:MD_Format/gmd:name, 'Shapefile')">
-          <xsl:text>application/x-esri-shapefile</xsl:text>
-        </xsl:when>
-        <xsl:when
-          test="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:spatialRepresentationType/gmd:MD_SpatialRepresentationTypeCode/@codeListValue = 'vector'">
-          <xsl:text>application/x-esri-shapefile</xsl:text>
-        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributionFormat/gmd:MD_Format/gmd:name/gco:CharacterString"/>
+        </xsl:otherwise>
       </xsl:choose>
     </xsl:variable>
 
@@ -152,10 +145,10 @@
     </xsl:variable>
 
     <!-- Transformation scenarios -->
-    <!-- Schema declaration. -->
-    <xsl:text>{"$schema": "https://raw.githubusercontent.com/UWM-Libraries/geoblacklight/main/schema/geoblacklight-schema-aardvark.json",</xsl:text>
+    <!-- Schema declaration. My poor schema declaration, sliced down at the prime of its life. :(
+    <xsl:text>{"$schema": "https://raw.githubusercontent.com/UWM-Libraries/geoblacklight/main/schema/geoblacklight-schema-aardvark.json",</xsl:text>-->
     <!-- 01. Title element. Required. Not repeatable -->
-    <xsl:text>"dct_title_s": "</xsl:text>
+    <xsl:text>{"dct_title_s": "</xsl:text>
     <xsl:value-of
       select="gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:title"/>
     <xsl:text>",</xsl:text>
@@ -618,10 +611,10 @@
         <xsl:text>"Public",</xsl:text>
       </xsl:otherwise>
     </xsl:choose>
-    <!-- 32. Format element. Conditional. Not Repeatable. I'm not really sure what the conditions of this are. I'll have to ask Stephen to possibly get into it. 
-    <xsl:text>","dct_format_s": "</xsl:text>
+    <!-- 32. Format element. Conditional. Not Repeatable. I'm not really sure what the conditions of this are. I'll have to ask Stephen to possibly get into it.  -->
+    <xsl:text>"dct_format_s": "</xsl:text>
           <xsl:value-of select="$format"/>
-    <xsl:text>",</xsl:text> -->
+    <xsl:text>",</xsl:text>
     <!-- 33. Future site of File Size element. Optional. Not Repeatable. As far as I can tell, this isn't included in the ISO metadata. It's possible we could extract it from the actual technical metadata of the files, though I don't think we could do that with XSLT very easily. Probably with Java or Ruby on Rails or whatever we use to crosswalk the Metadata, but since it's optional, I'm not sure it's worth it. Maybe transfer size-->
     <!-- 34. WxS Identifier. Conditional. Not Repeatable. Apparently this corresponds to the Layer ID from version 1.0. We'll need to decide if we're useing druid or urn (I don't know what those are) or if we're using this or whatever. For now I'm going to use druid, because it sounds cooler. -->
     <xsl:text>"gbl_wxsIdentifier_s": "druid:</xsl:text>
