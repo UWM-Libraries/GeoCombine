@@ -17,13 +17,14 @@ module GeoCombine
         'metadata-issues',
         'ogm_utils-python',
         'opengeometadata.github.io',
-        'opengeometadata-rails'
+        'opengeometadata-rails',
+        'gbl-1_to_aardvark'
       ]
     end
 
     # GitHub API endpoint for OpenGeoMetadata repositories
     def self.ogm_api_uri
-      URI('https://api.github.com/orgs/opengeometadata/repos')
+      URI('https://api.github.com/orgs/opengeometadata/repos?per_page=1000')
     end
 
     def initialize(
@@ -53,27 +54,42 @@ module GeoCombine
       end
     end
 
-    # Update a repository via git, or all repositories if none specified.
-    # If the repository doesn't exist, clone it. Return the count of repositories updated.
-    def pull(repo = nil)
-      return repositories.map(&method(:pull)).reduce(:+) unless repo
-
+    # Update a repository via git
+    # If the repository doesn't exist, clone it.
+    def pull(repo)
       repo_path = File.join(@ogm_path, repo)
       clone(repo) unless File.directory? repo_path
 
-      Git.open(repo_path).pull && 1
+      Git.open(repo_path).pull
+      puts "Updated #{repo}"
+      1
     end
 
-    # Clone a repository via git, or all repositories if none specified.
-    # If the repository already exists, skip it. Return the count of repositories cloned.
-    def clone(repo = nil)
-      return repositories.map(&method(:clone)).reduce(:+) unless repo
+    # Update all repositories
+    # Return the count of repositories updated
+    def pull_all
+      repositories.map(&method(:pull)).reduce(:+)
+    end
 
+    # Clone a repository via git
+    # If the repository already exists, skip it.
+    def clone(repo)
       repo_path = File.join(@ogm_path, repo)
-      return 0 if File.directory? repo_path
+      if File.directory? repo_path
+        puts "Skipping clone to #{repo_path}; directory exists"
+        return 0
+      end
 
       repo_url = "https://github.com/OpenGeoMetadata/#{repo}.git"
-      Git.clone(repo_url, repo, path: repo_path, depth: 1) && 1
+      Git.clone(repo_url, nil, path: ogm_path, depth: 1)
+      puts "Cloned #{repo_url}"
+      1
+    end
+
+    # Clone all repositories via git
+    # Return the count of repositories cloned.
+    def clone_all
+      repositories.map(&method(:clone)).reduce(:+)
     end
 
     private
@@ -81,8 +97,9 @@ module GeoCombine
     # List of repository names to harvest
     def repositories
       @repositories ||= JSON.parse(Net::HTTP.get(self.class.ogm_api_uri))
-                            .map { |repo| repo['name'] if (repo['size']).positive? }
-                            .reject { |repo| self.class.denylist.include? repo }
+                            .filter { |repo| repo['size'].positive? }
+                            .map { |repo| repo['name'] }
+                            .reject { |name| self.class.denylist.include? name }
     end
   end
 end

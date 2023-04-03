@@ -15,7 +15,8 @@ RSpec.describe GeoCombine::Harvester do
     [
       { name: repo_name, size: 100 },
       { name: 'another-institution', size: 100 },
-      { name: 'aardvark', size: 300 } # on denylist
+      { name: 'aardvark', size: 300 }, # on denylist
+      { name: 'empty', size: 0 }       # no data
     ].to_json
   end
 
@@ -49,24 +50,26 @@ RSpec.describe GeoCombine::Harvester do
       expect(stub_repo).to have_received(:pull)
     end
 
-    it 'can pull all repositories' do
-      harvester.pull
-      expect(Git).to have_received(:open).exactly(2).times
-      expect(stub_repo).to have_received(:pull).exactly(2).times
-    end
-
-    it 'skips repositories in the denylist' do
-      harvester.pull
-      expect(Git).not_to have_received(:open).with('https://github.com/OpenGeoMetadata/aardvark.git')
-    end
-
     it 'clones a repo before pulling if it does not exist' do
       harvester.pull(repo_name)
       expect(Git).to have_received(:clone)
     end
+  end
+
+  describe '#pull_all' do
+    it 'can pull all repositories' do
+      harvester.pull_all
+      expect(Git).to have_received(:open).exactly(2).times
+      expect(stub_repo).to have_received(:pull).exactly(2).times
+    end
 
     it 'returns the count of repositories pulled' do
-      expect(harvester.pull).to eq(2)
+      expect(harvester.pull_all).to eq(2)
+    end
+
+    it 'skips repositories in the denylist' do
+      harvester.pull_all
+      expect(Git).not_to have_received(:open).with('https://github.com/OpenGeoMetadata/aardvark.git')
     end
   end
 
@@ -75,21 +78,11 @@ RSpec.describe GeoCombine::Harvester do
       harvester.clone(repo_name)
       expect(Git).to have_received(:clone).with(
         repo_url,
-        repo_name, {
+        nil, {
           depth: 1, # shallow clone
-          path: repo_path
+          path: harvester.ogm_path
         }
       )
-    end
-
-    it 'can clone all repositories' do
-      harvester.clone
-      expect(Git).to have_received(:clone).exactly(2).times
-    end
-
-    it 'skips repositories in the denylist' do
-      harvester.pull
-      expect(Git).not_to have_received(:clone).with('https://github.com/OpenGeoMetadata/aardvark.git')
     end
 
     it 'skips repositories that already exist' do
@@ -97,9 +90,27 @@ RSpec.describe GeoCombine::Harvester do
       harvester.clone(repo_name)
       expect(Git).not_to have_received(:clone)
     end
+  end
+
+  describe '#clone_all' do
+    it 'can clone all repositories' do
+      harvester.clone_all
+      expect(Git).to have_received(:clone).exactly(2).times
+    end
+
+    it 'skips repositories in the denylist' do
+      harvester.clone_all
+      expect(Git).not_to have_received(:clone).with('https://github.com/OpenGeoMetadata/aardvark.git')
+    end
 
     it 'returns the count of repositories cloned' do
-      expect(harvester.clone).to eq(2)
+      expect(harvester.clone_all).to eq(2)
+    end
+  end
+
+  describe '#ogm_api_uri' do
+    it 'includes a per_page param' do
+      expect(described_class.send('ogm_api_uri').to_s).to include('per_page')
     end
   end
 end
