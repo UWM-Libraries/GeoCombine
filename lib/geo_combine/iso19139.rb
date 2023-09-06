@@ -7,7 +7,7 @@ module GeoCombine
     # XSL
     # @return [Nokogiri::XSLT]
     def xsl_geoblacklight
-      Nokogiri::XSLT(File.open(File.join(File.dirname(__FILE__), '../xslt/iso2geoBL.xsl')))
+      Nokogiri::XSLT(File.open(File.join(File.dirname(__FILE__), '../xslt/iso2geoBLAardvark.xsl')))
     end
 
     ##
